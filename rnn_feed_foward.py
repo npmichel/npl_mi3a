@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Embedding , Flatten , Dense # type: ignore #
 import numpy as np
 
 # 1 : Tokenization
-def rnn_tokenization(sentences):
+def rnn_ff_tokenization(sentences):
     """  
     Process RNN Feed forward process
     """
@@ -17,22 +17,22 @@ def rnn_tokenization(sentences):
     return tokenizer, vocab_size
 
 # 2 Data preparation
-def data_preparation(sentenses: list[str], tokenizer: Tokenizer):
+def rnn_ff_data_preparation(sentenses: list[str], tokenizer: Tokenizer, context_size=2):
     """ Model process """
     X = [] # Listes des contextes (entrées)
     y = [] # Listes des mots cibles (sorties)
     # Parcours de chaque phrase du corpus
     for sent in sentenses:
         encoded = tokenizer.texts_to_sequences([sent])[0] # Conversion des mots en indices
-        X.append(encoded[:2]) # Ajout des deux premiers mots comme contexte
-        y.append(encoded[2]) # Ajout du troisième mot comme cile a prédire
+        X.append(encoded[:context_size]) # Ajout des deux premiers mots comme contexte
+        y.append(encoded[context_size]) # Ajout du troisième mot comme cile a prédire
     X = np.array(X) # Converstion des contextes en tableau Numpy
     y= np.array(y) # Conversion des mots cibles en tableau Numpy
     return X, y
 
 
 # 3 Model preparation
-def nn_feed_foward_model(vocab_size):
+def nn_feed_foward_model(vocab_size, context_size=2):
     """ Neuronal feed forward 
     Définition du réseau feed-forward
     """
@@ -41,7 +41,7 @@ def nn_feed_foward_model(vocab_size):
         Embedding(
             input_dim=vocab_size, # Taille  du  vocabulaire
             output_dim=8, # Dimension des embedins
-            input_length=2, # Taille fixe du contexte 
+            input_length=context_size, # Taille fixe du contexte 
         ),
         Flatten(), # Passage de 2D a 1D
         Dense(16, activation="relu"), # Couche cachée non lineaire, permet d'apprendre des relations plus complexes que de simples co-occurences.
@@ -57,7 +57,7 @@ def nn_feed_foward_model(vocab_size):
 
 
 # 4. Model training
-def fit_model(model, x_data, y_data):
+def fit_rnn_ff_model(model, x_data, y_data):
     """
     Entraînement du modèle
     
@@ -97,16 +97,16 @@ if __name__ == "__main__":
     print(f"Le sentense est =>: {sentenses}")
     print(f"Test feed-forward")
     # 1. Tokenizer
-    tokenizer, vocab_size = rnn_tokenization(sentences=sentenses)
+    tokenizer, vocab_size = rnn_ff_tokenization(sentences=sentenses)
 
     #2. Data 
-    x_data, y_data = data_preparation(sentenses=sentenses, tokenizer=tokenizer)
+    x_data, y_data = rnn_ff_data_preparation(sentenses=sentenses, tokenizer=tokenizer)
 
     # 3. Model 
     model = nn_feed_foward_model(vocab_size=vocab_size)
 
     # 4. Training
-    model = fit_model(model=model, x_data=x_data, y_data=y_data)
+    model = fit_rnn_ff_model(model=model, x_data=x_data, y_data=y_data)
 
     # Question 6
     test = tokenizer.texts_to_sequences([["le", "chat"]]) # Convertion du contexte en indices
